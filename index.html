@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Movie Finder - Catálogo de Filmes e Séries</title>
+  <meta name="description" content="Busque filmes e séries, veja sinopses e monte sua lista de favoritos." />
+
+  <script>   <!--evitar flash-->
+    (function () {
+      try {
+        var theme = localStorage.getItem("movieFinder:theme") || "dark";
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {}
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="filmstrip" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#" class="logo" data-nav="home">
+        <span class="logo-text">Movie<em>Finder</em></span>
+      </a>
+      <nav class="tabs" aria-label="Navegação principal">
+        <button class="tab is-active" data-nav="home" type="button">
+          Início
+        </button>
+        <button class="tab" data-nav="profile" type="button">
+          <i class="fa-solid fa-user"></i>
+          Perfil
+        </button>
+      </nav>
+    </div>
+  </header>
+  <div id="homeView">
+    <section class="hero">
+      <div class="container">
+        <p class="hero-eyebrow">Bilheteria 24 horas</p>
+        <h1 class="hero-title">
+          O que vamos assistir<br />
+          hoje?
+        </h1>
+        <form class="search-form" id="searchForm" role="search" autocomplete="off">
+          <label for="searchInput" class="sr-only">Buscar filme ou série</label>
+          <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="Busque por título… ex: Duna, Succession, Oppenheimer"/>
+          <button type="submit" class="search-btn" aria-label="Buscar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </form>
+        <div class="filter-row" id="filterRow">
+          <span class="filter-label">Gêneros:</span>
+          <div class="chip-group" id="genreChips"></div>
+        </div>
+      </div>
+    </section>
+    <div class="filmstrip filmstrip--thin" aria-hidden="true"></div>
+    <main class="container main-content">
+      <div class="section-heading">
+        <h2 id="sectionTitle">Em cartaz agora</h2>
+        <p class="section-sub" id="sectionSub">Os mais populares do momento</p>
+      </div>
+      <div class="state state--loading" id="loadingState" hidden>
+        <div class="reel" aria-hidden="true"></div>
+        <p>Rebobinando a fita…</p>
+      </div>
+      <div class="state state--error" id="errorState" hidden>
+        <p class="state-title">A projeção falhou.</p>
+        <p class="state-text" id="errorText">
+          Não foi possível carregar os filmes agora. Tente novamente.
+        </p>
+        <button class="btn-ghost" id="retryBtn" type="button">Tentar de novo</button>
+      </div>
+      <div class="state state--empty" id="emptyState" hidden>
+        <p class="state-title">Sala vazia.</p>
+        <p class="state-text" id="emptyText">
+          Nenhum resultado para essa busca. Tente outro título.
+        </p>
+      </div>
+      <div class="movie-grid" id="movieGrid"></div>
+      <div class="pagination" id="pagination" hidden>
+        <button class="btn-ghost" id="loadMoreBtn" type="button">Carregar mais filmes</button>
+      </div>
+      <section class="reviews-section" id="reviewsSection">
+        <div class="section-heading">
+          <h2>
+            <i class="fa-solid fa-comment-dots"></i>
+            Resenhas em destaque
+          </h2>
+          <p class="section-sub">
+            O que o público está comentando sobre os filmes em cartaz
+          </p>
+        </div>
+        <div class="state state--loading" id="reviewsLoading">
+          <div class="reel" aria-hidden="true"></div>
+          <p>Buscando resenhas…</p>
+        </div>
+        <div class="state state--empty" id="reviewsEmpty" hidden>
+          <p class="state-title">Nenhuma resenha encontrada.</p>
+          <p class="state-text">
+            Ainda não há comentários públicos para os filmes em cartaz.
+          </p>
+        </div>
+        <div class="review-grid" id="reviewsList"></div>
+      </section>
+    </main>
+  </div>
+  <section class="profile-view container" id="profileView" hidden>
+    <div class="profile-card">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar" id="profileAvatar">
+          <i class="fa-solid fa-user"></i>
+        </div>
+        <button class="profile-avatar-edit" id="avatarEditBtn" type="button" aria-label="Trocar avatar">
+          <i class="fa-solid fa-pen"></i>
+        </button>
+      </div>
+      <div class="profile-info">
+        <div class="profile-info-header">
+          <div>
+            <h2 class="profile-name" id="profileName">Cinéfilo(a)</h2>
+            <p class="profile-bio" id="profileBio">
+              Apaixonado(a) por cinema e boas histórias.
+            </p>
+          </div>
+          <button class="btn-ghost" id="editProfileBtn" type="button">Editar perfil</button>
+        </div>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <span class="profile-stat-value" id="profileFavCount">0</span>
+            <span class="profile-stat-label">Favoritos</span>
+          </div>
+          <div class="profile-stat">
+            <span class="profile-stat-value" id="profileGenre">—</span>
+            <span class="profile-stat-label">Gênero favorito</span>
+          </div>
+          <div class="profile-stat">
+            <span class="profile-stat-value" id="profileAvg">0.0</span>
+            <span class="profile-stat-label">Nota média</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-card">
+      <div class="settings-row">
+        <div class="settings-row-text">
+          <h3>
+            <i class="fa-solid fa-palette"></i>
+            Aparência
+          </h3>
+        </div>
+        <button
+          class="theme-toggle"
+          id="themeToggle"
+          type="button"
+          role="switch"
+          aria-checked="true"
+          aria-label="Alternar tema claro/escuro">
+          <i class="fa-solid fa-moon theme-toggle-icon theme-toggle-icon--moon"></i>
+          <i class="fa-solid fa-sun theme-toggle-icon theme-toggle-icon--sun"></i>
+          <span class="theme-toggle-knob"></span>
+        </button>
+      </div>
+    </div>
+    <div class="section-heading profile-section-heading">
+      <h2>
+        <i class="fa-solid fa-star"></i>
+        Favoritos
+      </h2>
+      <p class="section-sub">Os títulos que você guardou para assistir depois</p>
+    </div>
+    <div class="state state--empty" id="noFavoritesState" hidden>
+      <p class="state-title">Ainda não há ingressos guardados.</p>
+      <p class="state-text">Toque no ícone de estrela em qualquer cartaz para favoritar.</p>
+    </div>
+    <div class="movie-grid" id="profileFavGrid"></div>
+  </section>
+  <div class="filmstrip filmstrip--thin" id="footerFilmstrip" aria-hidden="true"></div>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>
+        ©️ Movie Finder - Dados fornecidos por
+        <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>.
+      </p>
+    </div>
+  </footer>
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="modalClose" type="button" aria-label="Fechar detalhes">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="profileEditModal" hidden>
+    <div class="modal profile-edit-modal" role="dialog" aria-modal="true" aria-labelledby="profileEditTitle">
+      <button class="modal-close" id="profileEditModalClose" type="button" aria-label="Fechar edição de perfil">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="profile-edit-modal-content">
+        <p class="hero-eyebrow">Seu perfil</p>
+        <h2 class="modal-title" id="profileEditTitle">Editar perfil</h2>
+        <form class="profile-edit-form" id="profileEditForm">
+          <label for="profileNameInput">Nome</label>
+          <input
+            type="text"
+            id="profileNameInput"
+            class="profile-edit-input"
+            placeholder="Seu nome"
+            maxlength="40"
+            autocomplete="name"/>
+          <label for="profileBioInput">Sobre você</label>
+          <textarea
+            id="profileBioInput"
+            class="profile-edit-input"
+            placeholder="Uma frase sobre você"
+            maxlength="80"
+            rows="3"
+          ></textarea>
+          <div class="profile-edit-actions">
+            <button class="btn-ghost" id="saveProfileBtn" type="button">Salvar</button>
+            <button class="btn-text" id="cancelProfileBtn" type="button">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <template id="cardTemplate">
+    <article class="movie-card">
+      <button class="fav-btn" type="button" aria-pressed="false" aria-label="Favoritar">
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path
+            d="M12 3.5l2.6 5.5 6 .6-4.5 4.1 1.3 6-5.4-3-5.4 3 1.3-6-4.5-4.1 6-.6z"
+            fill="currentColor"/>
+        </svg>
+      </button>
+      <div class="poster-wrap">
+        <img class="poster" src="" alt="" loading="lazy" />
+        <span class="rating-badge">0.0</span>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title"></h3>
+        <p class="card-meta"></p>
+      </div>
+    </article>
+  </template>
+  <template id="reviewTemplate">
+    <article class="review-card">
+      <div class="review-header">
+        <div class="review-avatar">
+          <i class="fa-solid fa-user"></i>
+        </div>
+        <div>
+          <p class="review-author"></p>
+          <p class="review-movie"></p>
+        </div>
+        <span class="review-rating">
+          <i class="fa-solid fa-star"></i>
+          <span class="review-rating-value"></span>
+        </span>
+      </div>
+      <p class="review-content"></p>
+    </article>
+  </template>
+  <script src="js/api.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

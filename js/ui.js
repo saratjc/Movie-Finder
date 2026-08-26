@@ -1,0 +1,266 @@
+const UI = (() => {
+
+  const grid = document.getElementById("movieGrid");
+  const cardTemplate = document.getElementById("cardTemplate");
+  const loadingState = document.getElementById("loadingState");
+  const errorState = document.getElementById("errorState");
+  const emptyState = document.getElementById("emptyState");
+  const noFavoritesState = document.getElementById("noFavoritesState");
+  const errorText = document.getElementById("errorText");
+  const pagination = document.getElementById("pagination");
+
+  function posterUrl(path, size = CONFIG.TMDB_IMAGE_BASE) {
+    return path ? `${size}${path}` : CONFIG.PLACEHOLDER_POSTER;
+  }
+
+  function formatYear(dateStr) {
+    return dateStr ? dateStr.slice(0, 4) : "—";
+  }
+
+  function formatRating(vote) {
+    return vote ? vote.toFixed(1) : "—";
+  }
+
+  function clearGrid() {
+    grid.innerHTML = "";
+  }
+
+  function showState({ loading = false, error = false, empty = false, noFavorites = false } = {}) {
+    loadingState.hidden = !loading;
+    errorState.hidden = !error;
+    emptyState.hidden = !empty;
+    noFavoritesState.hidden = !noFavorites;
+  }
+
+  function setError(message) {
+    errorText.textContent = message || "Não foi possível carregar os filmes agora. Tente novamente.";
+  }
+
+  function setPaginationVisible(visible) {
+    pagination.hidden = !visible;
+  }
+
+  const statFavorites = document.getElementById("profileFavCount");
+  const statGenre = document.getElementById("profileGenre");
+  const statAverage = document.getElementById("profileAvg");
+
+  function updateProfileStats(genreNames = new Map()) {
+    const favorites = Favorites.getAll();
+
+    statFavorites.textContent = favorites.length;
+
+    if (favorites.length === 0) {
+      statGenre.textContent = "—";
+      statAverage.textContent = "—";
+      return;
+    }
+
+    const genreCount = new Map();
+    favorites.forEach((movie) => {
+      (movie.genre_ids || []).forEach((id) => {
+        genreCount.set(id, (genreCount.get(id) || 0) + 1);
+      });
+    });
+
+    let topGenreId = null;
+    let topCount = 0;
+    genreCount.forEach((count, id) => {
+      if (count > topCount) {
+        topCount = count;
+        topGenreId = id;
+      }
+    });
+
+    statGenre.textContent = topGenreId !== null ? (genreNames.get(topGenreId) || "—") : "—";
+
+    const validRatings = favorites.filter((m) => m.vote_average).map((m) => m.vote_average);
+    const avg = validRatings.length
+      ? validRatings.reduce((sum, v) => sum + v, 0) / validRatings.length
+      : 0;
+    statAverage.textContent = avg ? avg.toFixed(1) : "—";
+  }
+
+  function renderMovies(movies, { append = false, targetGrid = null } = {}) {
+    const target = targetGrid || grid;
+    if (!append) target.innerHTML = "";
+
+    const fragment = document.createDocumentFragment();
+
+    movies.forEach((movie) => {
+      const node = cardTemplate.content.cloneNode(true);
+      const card = node.querySelector(".movie-card");
+      const img = node.querySelector(".poster");
+      const badge = node.querySelector(".rating-badge");
+      const title = node.querySelector(".card-title");
+      const meta = node.querySelector(".card-meta");
+      const favBtn = node.querySelector(".fav-btn");
+
+      card.dataset.id = movie.id;
+      img.src = posterUrl(movie.poster_path);
+      img.alt = `Pôster de ${movie.title}`;
+      badge.textContent = formatRating(movie.vote_average);
+      title.textContent = movie.title;
+      meta.textContent = formatYear(movie.release_date);
+
+      const isFav = Favorites.isFavorite(movie.id);
+      favBtn.setAttribute("aria-pressed", String(isFav));
+      favBtn.dataset.id = movie.id;
+
+      fragment.appendChild(node);
+    });
+
+    target.appendChild(fragment);
+  }
+
+  function setFavButtonState(movieId, isFav) {
+    document
+      .querySelectorAll(`.fav-btn[data-id="${movieId}"], .modal-fav[data-id="${movieId}"]`)
+      .forEach((btn) => btn.setAttribute("aria-pressed", String(isFav)));
+  }
+
+  const reviewsSection = document.getElementById("reviewsSection");
+  const reviewsList = document.getElementById("reviewsList");
+  const reviewsLoading = document.getElementById("reviewsLoading");
+  const reviewsEmpty = document.getElementById("reviewsEmpty");
+  const reviewTemplate = document.getElementById("reviewTemplate");
+
+  function avatarUrl(path) {
+    if (!path) return null;
+    if (path.startsWith("/http")) return decodeURIComponent(path.slice(1));
+    return `https://image.tmdb.org/t/p/w45${path}`;
+  }
+
+  function truncate(text, max = 220) {
+    if (!text) return "Sem comentário adicional.";
+    return text.length > max ? `${text.slice(0, max).trim()}…` : text;
+  }
+
+  function setReviewsSectionVisible(visible) {
+    if (reviewsSection) reviewsSection.hidden = !visible;
+  }
+
+  function setReviewsState({ loading = false, empty = false } = {}) {
+    reviewsLoading.hidden = !loading;
+    reviewsEmpty.hidden = !empty;
+  }
+
+  function renderReviews(reviews) {
+    reviewsList.innerHTML = "";
+    const fragment = document.createDocumentFragment();
+
+    reviews.forEach((review) => {
+      const node = reviewTemplate.content.cloneNode(true);
+      const avatarEl = node.querySelector(".review-avatar");
+      const author = node.querySelector(".review-author");
+      const movieName = node.querySelector(".review-movie");
+      const ratingWrap = node.querySelector(".review-rating");
+      const ratingValue = node.querySelector(".review-rating-value");
+      const content = node.querySelector(".review-content");
+
+      author.textContent = review.author || "Anônimo";
+      movieName.textContent = review.movieTitle || "";
+      content.textContent = truncate(review.content);
+
+      const url = avatarUrl(review.avatar_path);
+      if (url) {
+        avatarEl.innerHTML = `<img src="${url}" alt="" loading="lazy" />`;
+      }
+
+      const rating = review.author_details?.rating;
+      if (rating) {
+        ratingValue.textContent = rating;
+      } else if (ratingWrap) {
+        ratingWrap.hidden = true;
+      }
+
+      fragment.appendChild(node);
+    });
+
+    reviewsList.appendChild(fragment);
+  }
+
+
+  const modalOverlay = document.getElementById("modalOverlay");
+  const modalBody = document.getElementById("modalBody");
+
+  function renderModal(movie) {
+    const isFav = Favorites.isFavorite(movie.id);
+    const genres = (movie.genres || []).map((g) => g.name).join(" · ") || "Gênero não informado";
+    const runtime = movie.runtime ? `${movie.runtime} min` : "Duração não informada";
+
+    modalBody.innerHTML = `
+      <div class="modal-hero">
+        <img class="modal-poster" src="${posterUrl(movie.poster_path, CONFIG.TMDB_IMAGE_BASE_LG)}" alt="Pôster de ${movie.title}" />
+        <div>
+          <h2 class="modal-title" id="modalTitle">${movie.title}</h2>
+          ${movie.tagline ? `<p class="modal-tagline">"${movie.tagline}"</p>` : ""}
+          <div class="modal-meta-row">
+            <span class="meta-pill meta-pill--rating"><i class="fa-solid fa-star"></i> ${formatRating(movie.vote_average)}</span>
+            <span class="meta-pill">${formatYear(movie.release_date)}</span>
+            <span class="meta-pill">${runtime}</span>
+          </div>
+          <button class="modal-fav" data-id="${movie.id}" aria-pressed="${isFav}" type="button">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3.5l2.6 5.5 6 .6-4.5 4.1 1.3 6-5.4-3-5.4 3 1.3-6-4.5-4.1 6-.6z" fill="currentColor"/></svg>
+            <span class="modal-fav-label">${isFav ? "Nos favoritos" : "Adicionar aos favoritos"}</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-section">
+        <h3>Gêneros</h3>
+        <p>${genres}</p>
+      </div>
+      <div class="modal-section">
+        <h3>Sinopse</h3>
+        <p>${movie.overview || "Sinopse não disponível para este título."}</p>
+      </div>
+    `;
+
+    modalOverlay.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal() {
+    modalOverlay.hidden = true;
+    modalBody.innerHTML = "";
+    document.body.style.overflow = "";
+  }
+
+
+  function renderGenreChips(genres, onSelect) {
+    const container = document.getElementById("genreChips");
+    container.innerHTML = "";
+
+    genres.forEach((genre) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.textContent = genre.name;
+      chip.dataset.id = genre.id;
+      chip.addEventListener("click", () => onSelect(genre, chip));
+      container.appendChild(chip);
+    });
+  }
+
+  function setActiveChip(chipEl) {
+    document.querySelectorAll(".chip").forEach((c) => c.classList.remove("is-active"));
+    if (chipEl) chipEl.classList.add("is-active");
+  }
+
+  return {
+    renderMovies,
+    clearGrid,
+    showState,
+    setError,
+    setPaginationVisible,
+    updateProfileStats,
+    setFavButtonState,
+    renderModal,
+    closeModal,
+    renderGenreChips,
+    setActiveChip,
+    posterUrl,
+    setReviewsSectionVisible,
+    setReviewsState,
+    renderReviews,
+  };
+})();
