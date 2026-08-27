@@ -1,3 +1,4 @@
+/* variaveis do tema escuro*/
 :root{
   --bg:            #121014;
   --bg-raised:     #1B181E;
@@ -15,13 +16,14 @@
   --burgundy-bright:#8C3049;
 
   --font-display: "Fraunces", Georgia, serif;
-  --font-body: "Work Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: "Work Sans", -apple-system, sans-serif;
 
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 14px;
 }
 
+/* cores qnd o tema claro ta ativado */
 :root[data-theme="light"]{
   --bg:            #F3EEE3;
   --bg-raised:     #EAE2D2;
@@ -39,20 +41,13 @@
   --burgundy-bright:#8C3049;
 }
 
-html{
-  transition: background-color .2s ease;
-}
-
-*{ box-sizing: border-box; }
-html{ scroll-behavior: smooth; }
-
+/* reset basico do body, usa as variaveis do tem*/
 body{
   margin: 0;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-body);
   line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
 }
 
 .container{
@@ -61,59 +56,11 @@ body{
   padding: 0 24px;
 }
 
-a{ color: inherit; }
-
-.sr-only{
-  position: absolute; width: 1px; height: 1px;
-  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap;
-}
-
-:focus-visible{
-  outline: 2px solid var(--gold-bright);
-  outline-offset: 3px;
-}
-
 @media (prefers-reduced-motion: reduce){
   *{
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
-}
-
-.filmstrip{
-  height: 18px;
-  background:
-    repeating-linear-gradient(90deg,
-      var(--bg-raised) 0 10px,
-      transparent 10px 22px),
-    var(--bg);
-  background-position: 6px 50%, 0 0;
-  background-repeat: repeat-x;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  position: relative;
-}
-
-.filmstrip::before,
-.filmstrip::after{
-  content:"";
-  position:absolute;
-  left:0;
-  right:0;
-  height: 6px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--bg) 0 8px,
-    transparent 8px 16px
-  );
-}
-
-.filmstrip::before{ top: 0; }
-.filmstrip::after{ bottom: 0; }
-
-.filmstrip--thin{
-  height: 10px;
-  opacity: 0.6;
 }
 
 .site-header{
@@ -150,6 +97,7 @@ a{ color: inherit; }
   gap: 8px;
 }
 
+/*destacar  aba q ta  ativa*/
 .tab{
   font-family: var(--font-body);
   font-weight: 600;
@@ -214,6 +162,7 @@ a{ color: inherit; }
   gap: 6px;
 }
 
+/* input de texto da busca em si, sem borda pq a borda é do form */
 .search-input{
   flex:1;
   background: transparent;
@@ -270,6 +219,7 @@ a{ color: inherit; }
   color: var(--ink-faint);
 }
 
+/*filtro*/
 .chip-group{
   display:flex;
   gap: 8px;
@@ -339,6 +289,7 @@ a{ color: inherit; }
   color: var(--ink-faint);
 }
 
+/* aquele circulo giratorio de loading*/
 .reel{
   width: 46px;
   height: 46px;
@@ -349,6 +300,7 @@ a{ color: inherit; }
   animation: spin 0.9s linear infinite;
 }
 
+/* a animação do loading gira 360 graus sem parar */
 @keyframes spin{
   to{
     transform: rotate(360deg);
@@ -446,6 +398,7 @@ a{ color: inherit; }
   border-color: var(--gold);
 }
 
+/* qnd ja favoritado, muda a cor pra indicar o estado */
 .fav-btn[aria-pressed="true"]{
   color: var(--bg);
   background: var(--gold-bright);
@@ -577,6 +530,7 @@ a{ color: inherit; }
   padding: 4px 10px;
 }
 
+/*texto da review em si*/
 .review-content{
   margin: 0;
   font-size: 0.88rem;
@@ -682,6 +636,7 @@ a{ color: inherit; }
   font-weight: 600;
 }
 
+/* botao de favoritar dentro do modal*/
 .modal-fav{
   display:inline-flex;
   align-items:center;
@@ -697,6 +652,7 @@ a{ color: inherit; }
   cursor: pointer;
 }
 
+/* mesma logica do fav-btn: preenchido qnd ja favoritado*/
 .modal-fav[aria-pressed="true"]{
   background: var(--gold-bright);
   color: var(--bg);
@@ -750,6 +706,7 @@ a{ color: inherit; }
   width: fit-content;
 }
 
+/* bolao com a inicial/foto do usuario */
 .profile-avatar{
   width: 96px;
   height: 96px;
@@ -763,6 +720,7 @@ a{ color: inherit; }
   border: 3px solid var(--gold);
 }
 
+/* botaozinho de lapis pra editar a foto, no cantinho do avatar*/
 .profile-avatar-edit{
   position: absolute;
   bottom: -2px;
@@ -836,6 +794,7 @@ a{ color: inherit; }
   border-color: var(--gold);
 }
 
+/*botao de salvar/cancelar do form de edição */
 .profile-edit-actions{
   display: flex;
   align-items: center;
@@ -857,6 +816,7 @@ a{ color: inherit; }
   color: var(--ink);
 }
 
+/*numeros de estatistica do perfil (favoritos, reviews etc)*/
 .profile-stats{
   display:flex;
   gap: 36px;
@@ -931,6 +891,7 @@ a{ color: inherit; }
   flex-shrink: 0;
 }
 
+/* iconezinhos de lua/sol*/
 .theme-toggle-icon{
   position: absolute;
   top: 50%;
@@ -958,6 +919,7 @@ a{ color: inherit; }
   transition: transform .2s ease;
 }
 
+/* qnd tema claro ta desligado, joga a bolinha pra outro lado */
 .theme-toggle[aria-checked="false"] .theme-toggle-knob{
   transform: translateX(30px);
 }
@@ -966,6 +928,7 @@ a{ color: inherit; }
   margin-bottom: 22px;
 }
 
+/* centralizar tudo */
 @media (max-width: 560px){
   .profile-card{
     grid-template-columns: 1fr;
@@ -986,6 +949,7 @@ a{ color: inherit; }
   }
 }
 
+/*rodapee*/
 .site-footer{
   border-top: 1px solid var(--border);
   padding: 26px 0 60px;
