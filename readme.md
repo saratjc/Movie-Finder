@@ -21,7 +21,3 @@ Aba **Perfil** dedicada, com:
  Estatísticas (nº de favoritos, gênero favorito, nota média)
  Alternância de tema claro/escuro (persistida no localStorage)
  Grid de favoritos
-
-## Identidade visual
-
-Tema "cinema de bairro à noite": fundo grafite quase preto, dourado de marquise (`#C9A227`) como cor de destaque principal e bordô de veludo (`#6E2439`) como acento secundário. No tema claro ("sessão da tarde"), a paleta vira creme/marfim mantendo os mesmos acentos. Tipografia combina **Fraunces** (serifada, dramática, para títulos) com **Work Sans** (para textos e interface). O elemento de assinatura é a "fita de filme" (sprocket holes) usada com moderação no topo e como divisor.
