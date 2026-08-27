@@ -24,7 +24,6 @@
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div class="filmstrip" aria-hidden="true"></div>
   <header class="site-header">
     <div class="container header-inner">
       <a href="#" class="logo" data-nav="home">
@@ -41,7 +40,7 @@
       </nav>
     </div>
   </header>
-  <div id="homeView">
+  <div id="homeView"> <!--pag inicial-->>
     <section class="hero">
       <div class="container">
         <p class="hero-eyebrow">Bilheteria 24 horas</p>
@@ -66,7 +65,6 @@
         </div>
       </div>
     </section>
-    <div class="filmstrip filmstrip--thin" aria-hidden="true"></div>
     <main class="container main-content">
       <div class="section-heading">
         <h2 id="sectionTitle">Em cartaz agora</h2>
@@ -117,7 +115,7 @@
       </section>
     </main>
   </div>
-  <section class="profile-view container" id="profileView" hidden>
+  <section class="profile-view container" id="profileView" hidden> <!--"pag" de perfil-->>
     <div class="profile-card">
       <div class="profile-avatar-wrap">
         <div class="profile-avatar" id="profileAvatar">
@@ -196,7 +194,7 @@
       </p>
     </div>
   </footer>
-  <div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal-overlay" id="modalOverlay" hidden> <!--todos os modais-->>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <button class="modal-close" id="modalClose" type="button" aria-label="Fechar detalhes">
         <i class="fa-solid fa-xmark"></i>
@@ -237,7 +235,7 @@
       </div>
     </div>
   </div>
-  <template id="cardTemplate">
+  <template id="cardTemplate"> 
     <article class="movie-card">
       <button class="fav-btn" type="button" aria-pressed="false" aria-label="Favoritar">
         <svg viewBox="0 0 24 24" width="18" height="18">
