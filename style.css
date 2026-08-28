@@ -41,7 +41,6 @@
   --burgundy-bright:#8C3049;
 }
 
-/* reset basico do body, usa as variaveis do tem*/
 body{
   margin: 0;
   background: var(--bg);
@@ -162,7 +161,6 @@ body{
   gap: 6px;
 }
 
-/* input de texto da busca em si, sem borda pq a borda é do form */
 .search-input{
   flex:1;
   background: transparent;
@@ -398,7 +396,7 @@ body{
   border-color: var(--gold);
 }
 
-/* qnd ja favoritado, muda a cor pra indicar o estado */
+/* qnd ja favoritado, muda a cor ,pra indicar o estado */
 .fav-btn[aria-pressed="true"]{
   color: var(--bg);
   background: var(--gold-bright);
@@ -675,7 +673,7 @@ body{
   line-height: 1.65;
 }
 
-@media (max-width: 560px){
+@media (max-width: 500px){
   .modal-hero{
     grid-template-columns: 1fr;
   }
