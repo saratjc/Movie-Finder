@@ -1,5 +1,6 @@
-const UI = (() => {
+const UI = {};
 
+(function () {
   const grid = document.getElementById("movieGrid");
   const cardTemplate = document.getElementById("cardTemplate");
   const loadingState = document.getElementById("loadingState");
@@ -9,8 +10,9 @@ const UI = (() => {
   const errorText = document.getElementById("errorText");
   const pagination = document.getElementById("pagination");
 
-  function posterUrl(path, size = CONFIG.TMDB_IMAGE_BASE) {
-    return path ? `${size}${path}` : CONFIG.PLACEHOLDER_POSTER;
+  function posterUrl(path, size) {
+    size = size || CONFIG.TMDB_IMAGE_BASE;
+    return path ? size + path : CONFIG.PLACEHOLDER_POSTER;
   }
 
   function formatYear(dateStr) {
@@ -25,68 +27,87 @@ const UI = (() => {
     grid.innerHTML = "";
   }
 
-  function showState({ loading = false, error = false, empty = false, noFavorites = false } = {}) {
-    loadingState.hidden = !loading;
-    errorState.hidden = !error;
-    emptyState.hidden = !empty;
-    noFavoritesState.hidden = !noFavorites;
+  //loading, erro, vazio, sem favoritos
+  function showState(opcoes) {
+    opcoes = opcoes || {};
+    loadingState.hidden = !opcoes.loading;
+    errorState.hidden = !opcoes.error;
+    emptyState.hidden = !opcoes.empty;
+    noFavoritesState.hidden = !opcoes.noFavorites;
   }
 
-  function setError(message) {
-    errorText.textContent = message || "Não foi possível carregar os filmes agora. Tente novamente.";
+  function setError(mensagem) {
+    errorText.textContent = mensagem || "Não foi possível carregar os filmes agora. Tente novamente.";
   }
 
-  function setPaginationVisible(visible) {
-    pagination.hidden = !visible;
+  function setPaginationVisible(visivel) {
+    pagination.hidden = !visivel;
   }
 
   const statFavorites = document.getElementById("profileFavCount");
   const statGenre = document.getElementById("profileGenre");
   const statAverage = document.getElementById("profileAvg");
 
-  function updateProfileStats(genreNames = new Map()) {
-    const favorites = Favorites.getAll();
+  //(qtd favoritos, genero preferido, media de nota)
+  function updateProfileStats(genreNames) {
+    genreNames = genreNames || new Map();
+    const favoritos = Favorites.getAll();
 
-    statFavorites.textContent = favorites.length;
+    statFavorites.textContent = favoritos.length;
 
-    if (favorites.length === 0) {
+    if (favoritos.length === 0) {
       statGenre.textContent = "—";
       statAverage.textContent = "—";
       return;
     }
 
-    const genreCount = new Map();
-    favorites.forEach((movie) => {
-      (movie.genre_ids || []).forEach((id) => {
-        genreCount.set(id, (genreCount.get(id) || 0) + 1);
+    const contagemGeneros = new Map();
+    favoritos.forEach(function (movie) {
+      const generos = movie.genre_ids || [];
+      generos.forEach(function (id) {
+        contagemGeneros.set(id, (contagemGeneros.get(id) || 0) + 1);
       });
     });
 
-    let topGenreId = null;
-    let topCount = 0;
-    genreCount.forEach((count, id) => {
-      if (count > topCount) {
-        topCount = count;
-        topGenreId = id;
+    let topGeneroId = null;
+    let topContagem = 0;
+    contagemGeneros.forEach(function (qtd, id) {
+      if (qtd > topContagem) {
+        topContagem = qtd;
+        topGeneroId = id;
       }
     });
 
-    statGenre.textContent = topGenreId !== null ? (genreNames.get(topGenreId) || "—") : "—";
+    statGenre.textContent = topGeneroId !== null ? genreNames.get(topGeneroId) || "—" : "—";
 
-    const validRatings = favorites.filter((m) => m.vote_average).map((m) => m.vote_average);
-    const avg = validRatings.length
-      ? validRatings.reduce((sum, v) => sum + v, 0) / validRatings.length
-      : 0;
-    statAverage.textContent = avg ? avg.toFixed(1) : "—";
+    const notasValidas = favoritos.filter(function (m) {
+      return m.vote_average;
+    }).map(function (m) {
+      return m.vote_average;
+    });
+
+    let media = 0;
+    if (notasValidas.length > 0) {
+      const soma = notasValidas.reduce(function (total, v) {
+        return total + v;
+      }, 0);
+      media = soma / notasValidas.length;
+    }
+
+    statAverage.textContent = media ? media.toFixed(1) : "—";
   }
 
-  function renderMovies(movies, { append = false, targetGrid = null } = {}) {
-    const target = targetGrid || grid;
-    if (!append) target.innerHTML = "";
+  function renderMovies(movies, opcoes) {
+    opcoes = opcoes || {};
+    const target = opcoes.targetGrid || grid;
+
+    if (!opcoes.append) {
+      target.innerHTML = "";
+    }
 
     const fragment = document.createDocumentFragment();
 
-    movies.forEach((movie) => {
+    movies.forEach(function (movie) {
       const node = cardTemplate.content.cloneNode(true);
       const card = node.querySelector(".movie-card");
       const img = node.querySelector(".poster");
@@ -97,7 +118,7 @@ const UI = (() => {
 
       card.dataset.id = movie.id;
       img.src = posterUrl(movie.poster_path);
-      img.alt = `Pôster de ${movie.title}`;
+      img.alt = "Pôster de " + movie.title;
       badge.textContent = formatRating(movie.vote_average);
       title.textContent = movie.title;
       meta.textContent = formatYear(movie.release_date);
@@ -112,10 +133,12 @@ const UI = (() => {
     target.appendChild(fragment);
   }
 
+  // atualiza o coraçãozinho
   function setFavButtonState(movieId, isFav) {
-    document
-      .querySelectorAll(`.fav-btn[data-id="${movieId}"], .modal-fav[data-id="${movieId}"]`)
-      .forEach((btn) => btn.setAttribute("aria-pressed", String(isFav)));
+    const seletor = '.fav-btn[data-id="' + movieId + '"], .modal-fav[data-id="' + movieId + '"]';
+    document.querySelectorAll(seletor).forEach(function (btn) {
+      btn.setAttribute("aria-pressed", String(isFav));
+    });
   }
 
   const reviewsSection = document.getElementById("reviewsSection");
@@ -127,28 +150,30 @@ const UI = (() => {
   function avatarUrl(path) {
     if (!path) return null;
     if (path.startsWith("/http")) return decodeURIComponent(path.slice(1));
-    return `https://image.tmdb.org/t/p/w45${path}`;
+    return "https://image.tmdb.org/t/p/w45" + path;
   }
 
-  function truncate(text, max = 220) {
+  function truncate(text, max) {
+    max = max || 220;
     if (!text) return "Sem comentário adicional.";
-    return text.length > max ? `${text.slice(0, max).trim()}…` : text;
+    return text.length > max ? text.slice(0, max).trim() + "…" : text;
   }
 
-  function setReviewsSectionVisible(visible) {
-    if (reviewsSection) reviewsSection.hidden = !visible;
+  function setReviewsSectionVisible(visivel) {
+    if (reviewsSection) reviewsSection.hidden = !visivel;
   }
 
-  function setReviewsState({ loading = false, empty = false } = {}) {
-    reviewsLoading.hidden = !loading;
-    reviewsEmpty.hidden = !empty;
+  function setReviewsState(opcoes) {
+    opcoes = opcoes || {};
+    reviewsLoading.hidden = !opcoes.loading;
+    reviewsEmpty.hidden = !opcoes.empty;
   }
 
   function renderReviews(reviews) {
     reviewsList.innerHTML = "";
     const fragment = document.createDocumentFragment();
 
-    reviews.forEach((review) => {
+    reviews.forEach(function (review) {
       const node = reviewTemplate.content.cloneNode(true);
       const avatarEl = node.querySelector(".review-avatar");
       const author = node.querySelector(".review-author");
@@ -163,10 +188,10 @@ const UI = (() => {
 
       const url = avatarUrl(review.avatar_path);
       if (url) {
-        avatarEl.innerHTML = `<img src="${url}" alt="" loading="lazy" />`;
+        avatarEl.innerHTML = '<img src="' + url + '" alt="" loading="lazy" />';
       }
 
-      const rating = review.author_details?.rating;
+      const rating = review.author_details ? review.author_details.rating : null;
       if (rating) {
         ratingValue.textContent = rating;
       } else if (ratingWrap) {
@@ -179,14 +204,14 @@ const UI = (() => {
     reviewsList.appendChild(fragment);
   }
 
-
   const modalOverlay = document.getElementById("modalOverlay");
   const modalBody = document.getElementById("modalBody");
 
   function renderModal(movie) {
     const isFav = Favorites.isFavorite(movie.id);
-    const genres = (movie.genres || []).map((g) => g.name).join(" · ") || "Gênero não informado";
-    const runtime = movie.runtime ? `${movie.runtime} min` : "Duração não informada";
+    const generosArr = movie.genres || [];
+    const genres = generosArr.map(function (g) { return g.name; }).join(" · ") || "Gênero não informado";
+    const runtime = movie.runtime ? movie.runtime + " min" : "Duração não informada";
 
     modalBody.innerHTML = `
       <div class="modal-hero">
@@ -225,42 +250,43 @@ const UI = (() => {
     document.body.style.overflow = "";
   }
 
-
   function renderGenreChips(genres, onSelect) {
     const container = document.getElementById("genreChips");
     container.innerHTML = "";
 
-    genres.forEach((genre) => {
+    genres.forEach(function (genre) {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "chip";
       chip.textContent = genre.name;
       chip.dataset.id = genre.id;
-      chip.addEventListener("click", () => onSelect(genre, chip));
+      chip.addEventListener("click", function () {
+        onSelect(genre, chip);
+      });
       container.appendChild(chip);
     });
   }
 
   function setActiveChip(chipEl) {
-    document.querySelectorAll(".chip").forEach((c) => c.classList.remove("is-active"));
+    document.querySelectorAll(".chip").forEach(function (c) {
+      c.classList.remove("is-active");
+    });
     if (chipEl) chipEl.classList.add("is-active");
   }
 
-  return {
-    renderMovies,
-    clearGrid,
-    showState,
-    setError,
-    setPaginationVisible,
-    updateProfileStats,
-    setFavButtonState,
-    renderModal,
-    closeModal,
-    renderGenreChips,
-    setActiveChip,
-    posterUrl,
-    setReviewsSectionVisible,
-    setReviewsState,
-    renderReviews,
-  };
+  UI.renderMovies = renderMovies;
+  UI.clearGrid = clearGrid;
+  UI.showState = showState;
+  UI.setError = setError;
+  UI.setPaginationVisible = setPaginationVisible;
+  UI.updateProfileStats = updateProfileStats;
+  UI.setFavButtonState = setFavButtonState;
+  UI.renderModal = renderModal;
+  UI.closeModal = closeModal;
+  UI.renderGenreChips = renderGenreChips;
+  UI.setActiveChip = setActiveChip;
+  UI.posterUrl = posterUrl;
+  UI.setReviewsSectionVisible = setReviewsSectionVisible;
+  UI.setReviewsState = setReviewsState;
+  UI.renderReviews = renderReviews;
 })();
