@@ -1,88 +1,107 @@
-const Favorites = (() => {
-  const STORAGE_KEY = "movieFinder:favorites";
+// tudo que mexe com favoritos fica aqui blz
+const Favorites = {
+  STORAGE_KEY: "movieFinder:favorites",
 
-  function getAll() {
+  getAll: function () {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      const dados = localStorage.getItem(this.STORAGE_KEY);
+      return dados ? JSON.parse(dados) : [];
     } catch (err) {
       console.error("Não foi possível ler os favoritos:", err);
       return [];
     }
-  }
+  },
 
-  function save(list) {
+  save: function (lista) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(lista));
     } catch (err) {
       console.error("Não foi possível salvar os favoritos:", err);
     }
-  }
+  },
 
-  function isFavorite(movieId) {
-    return getAll().some((m) => m.id === movieId);
-  }
+  isFavorite: function (movieId) {
+    const lista = this.getAll();
+    for (let i = 0; i < lista.length; i++) {
+      if (lista[i].id === movieId) return true;
+    }
+    return false;
+  },
 
-  function toggle(movie) {
-    const list = getAll();
-    const exists = list.some((m) => m.id === movie.id);
-    const updated = exists
-      ? list.filter((m) => m.id !== movie.id)
-      : [...list, minimal(movie)];
-    save(updated);
-    return !exists; 
-  }
+  // adiciona se não tiver, remove se já tiver
+  toggle: function (movie) {
+    const lista = this.getAll();
+    const jaTem = lista.some(function (m) {
+      return m.id === movie.id;
+    });
 
-  function minimal(movie) {
+    let novaLista;
+    if (jaTem) {
+      novaLista = lista.filter(function (m) {
+        return m.id !== movie.id;
+      });
+    } else {
+      novaLista = lista.concat([this.minimal(movie)]);
+    }
+
+    this.save(novaLista);
+    return !jaTem; // true = acabou de favoritar, false = acabou de tirar
+  },
+
+  minimal: function (movie) {
+    let generos = movie.genre_ids || [];
+    if (!movie.genre_ids && movie.genres) {
+      generos = movie.genres.map(function (g) {
+        return g.id;
+      });
+    }
+
     return {
       id: movie.id,
       title: movie.title,
       poster_path: movie.poster_path,
       vote_average: movie.vote_average,
       release_date: movie.release_date,
-      genre_ids: movie.genre_ids || (movie.genres ? movie.genres.map((g) => g.id) : []),
+      genre_ids: generos,
     };
-  }
+  },
 
-  function count() {
-    return getAll().length;
-  }
+  count: function () {
+    return this.getAll().length;
+  },
+};
 
-  return { getAll, isFavorite, toggle, count };
-})();
+// dados do perfil ne
+const Profile = {
+  NAME_KEY: "movieFinder:profileName",
+  BIO_KEY: "movieFinder:profileBio",
+  THEME_KEY: "movieFinder:theme", // pode ser "dark" ou "light"
 
-const Profile = (() => {
-  const NAME_KEY = "movieFinder:profileName";
-  const BIO_KEY = "movieFinder:profileBio";
-  const THEME_KEY = "movieFinder:theme"; // "dark" | "light"
+  DEFAULT_NAME: "Cinéfilo(a)",
+  DEFAULT_BIO: "Apaixonado(a) por cinema e boas histórias.",
 
-  const DEFAULT_NAME = "Cinéfilo(a)";
-  const DEFAULT_BIO = "Apaixonado(a) por cinema e boas histórias.";
+  getName: function () {
+    return localStorage.getItem(this.NAME_KEY) || this.DEFAULT_NAME;
+  },
 
-  function getName() {
-    return localStorage.getItem(NAME_KEY) || DEFAULT_NAME;
-  }
+  getBio: function () {
+    return localStorage.getItem(this.BIO_KEY) || this.DEFAULT_BIO;
+  },
 
-  function getBio() {
-    return localStorage.getItem(BIO_KEY) || DEFAULT_BIO;
-  }
+  saveProfile: function (name, bio) {
+    localStorage.setItem(this.NAME_KEY, name || this.DEFAULT_NAME);
+    localStorage.setItem(this.BIO_KEY, bio || this.DEFAULT_BIO);
+  },
 
-  function saveProfile(name, bio) {
-    localStorage.setItem(NAME_KEY, name || DEFAULT_NAME);
-    localStorage.setItem(BIO_KEY, bio || DEFAULT_BIO);
-  }
+  getTheme: function () {
+    return localStorage.getItem(this.THEME_KEY) || "dark";
+  },
 
-  function getTheme() {
-    return localStorage.getItem(THEME_KEY) || "dark";
-  }
+  saveTheme: function (theme) {
+    localStorage.setItem(this.THEME_KEY, theme);
+  },
 
-  function saveTheme(theme) {
-    localStorage.setItem(THEME_KEY, theme);
-  }
-
-  function applyTheme(theme) {
+  applyTheme: function (theme) {
     document.documentElement.setAttribute("data-theme", theme);
-  }
-
-  return { getName, getBio, saveProfile, getTheme, saveTheme, applyTheme };
-})();
+  },
+};
