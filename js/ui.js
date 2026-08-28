@@ -51,7 +51,7 @@ const UI = {};
   //(qtd favoritos, genero preferido, media de nota)
   function updateProfileStats(genreNames) {
     genreNames = genreNames || new Map();
-    const favoritos = Favorites.getAll();
+    const favoritos = Favorites.getFavorites();
 
     statFavorites.textContent = favoritos.length;
 
@@ -97,7 +97,7 @@ const UI = {};
     statAverage.textContent = media ? media.toFixed(1) : "—";
   }
 
-  function renderMovies(movies, opcoes) {
+  function renderMovieGrid(movies, opcoes) {
     opcoes = opcoes || {};
     const target = opcoes.targetGrid || grid;
 
@@ -274,7 +274,7 @@ const UI = {};
     if (chipEl) chipEl.classList.add("is-active");
   }
 
-  UI.renderMovies = renderMovies;
+  UI.renderMovieGrid = renderMovieGrid;
   UI.clearGrid = clearGrid;
   UI.showState = showState;
   UI.setError = setError;

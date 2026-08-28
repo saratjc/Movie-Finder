@@ -64,7 +64,7 @@
       }
 
       UI.showState({});
-      UI.renderMovies(data.results, { append: append });
+      UI.renderMovieGrid(data.results, { append: append });
       UI.setPaginationVisible(state.page < state.totalPages);
     } catch (err) {
       // deu ruim, mostra o estado de erro pro usuario
@@ -231,12 +231,12 @@
     const id = Number(favBtn.dataset.id);
 
     const movie = findMovieInGrid(card) || (await Api.getMovieDetails(id));
-    const nowFav = Favorites.toggle(movie);
+    const nowFav = Favorites.toggleFavorite(movie);
 
     UI.setFavButtonState(id, nowFav);
 
     if (!profileView.hidden) {
-      renderProfileFavorites();
+      renderFavorites();
       UI.updateProfileStats(genreNameMap);
     }
   });
@@ -247,7 +247,7 @@
 
     if (favBtn || !card) return;
 
-    openMovieModal(Number(card.dataset.id));
+    openModal(Number(card.dataset.id));
   });
 
   function findMovieInGrid(card) {
@@ -278,7 +278,7 @@
     };
   }
 
-  async function openMovieModal(movieId) {
+  async function openModal(movieId) {
     modalOverlay.hidden = false;
 
     modalBody.innerHTML =
@@ -303,7 +303,7 @@
     const id = Number(btn.dataset.id);
 
     Api.getMovieDetails(id).then(function (movie) {
-      const nowFav = Favorites.toggle(movie);
+      const nowFav = Favorites.toggleFavorite(movie);
       UI.setFavButtonState(id, nowFav);
 
       const label = btn.querySelector(".modal-fav-label");
@@ -312,7 +312,7 @@
       }
 
       if (!profileView.hidden) {
-        renderProfileFavorites();
+        renderFavorites();
         UI.updateProfileStats(genreNameMap);
       }
     });
@@ -332,8 +332,8 @@
     }
   });
 
-  function renderProfileFavorites() {
-    const favoritos = Favorites.getAll();
+  function renderFavorites() {
+    const favoritos = Favorites.getFavorites();
 
     if (favoritos.length === 0) {
       UI.showState({ noFavorites: true });
@@ -342,13 +342,13 @@
     }
 
     UI.showState({});
-    UI.renderMovies(favoritos, { targetGrid: profileFavGrid });
+    UI.renderMovieGrid(favoritos, { targetGrid: profileFavGrid });
   }
 
   function renderProfilePage() {
     profileName.textContent = Profile.getName();
     profileBio.textContent = Profile.getBio();
-    renderProfileFavorites();
+    renderFavorites();
     UI.updateProfileStats(genreNameMap);
   }
 

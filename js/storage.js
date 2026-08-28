@@ -2,7 +2,7 @@
 const Favorites = {
   STORAGE_KEY: "movieFinder:favorites",
 
-  getAll: function () {
+  getFavorites: function () {
     try {
       const dados = localStorage.getItem(this.STORAGE_KEY);
       return dados ? JSON.parse(dados) : [];
@@ -12,7 +12,7 @@ const Favorites = {
     }
   },
 
-  save: function (lista) {
+  saveFavorites: function (lista) {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(lista));
     } catch (err) {
@@ -21,7 +21,7 @@ const Favorites = {
   },
 
   isFavorite: function (movieId) {
-    const lista = this.getAll();
+    const lista = this.getFavorites();
     for (let i = 0; i < lista.length; i++) {
       if (lista[i].id === movieId) return true;
     }
@@ -29,8 +29,8 @@ const Favorites = {
   },
 
   // adiciona se não tiver, remove se já tiver
-  toggle: function (movie) {
-    const lista = this.getAll();
+  toggleFavorite: function (movie) {
+    const lista = this.getFavorites();
     const jaTem = lista.some(function (m) {
       return m.id === movie.id;
     });
@@ -44,7 +44,7 @@ const Favorites = {
       novaLista = lista.concat([this.minimal(movie)]);
     }
 
-    this.save(novaLista);
+    this.saveFavorites(novaLista);
     return !jaTem; // true = acabou de favoritar, false = acabou de tirar
   },
 
@@ -67,7 +67,7 @@ const Favorites = {
   },
 
   count: function () {
-    return this.getAll().length;
+    return this.getFavorites().length;
   },
 };
 
