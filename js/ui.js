@@ -27,7 +27,7 @@ const UI = {};
     grid.innerHTML = "";
   }
 
-  //loading, erro, vazio, sem favoritos
+  //loading erro vazio sem favoritos
   function showState(opcoes) {
     opcoes = opcoes || {};
     loadingState.hidden = !opcoes.loading;

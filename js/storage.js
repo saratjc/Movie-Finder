@@ -28,7 +28,7 @@ const Favorites = {
     return false;
   },
 
-  // adiciona se não tiver, remove se já tiver
+  // adiciona se não tiveremove se já tiver
   toggleFavorite: function (movie) {
     const lista = this.getFavorites();
     const jaTem = lista.some(function (m) {
@@ -45,7 +45,7 @@ const Favorites = {
     }
 
     this.saveFavorites(novaLista);
-    return !jaTem; // true = acabou de favoritar, false = acabou de tirar
+    return !jaTem; // true = acabou de favoritar false = acabou de tirar
   },
 
   minimal: function (movie) {
@@ -75,7 +75,7 @@ const Favorites = {
 const Profile = {
   NAME_KEY: "movieFinder:profileName",
   BIO_KEY: "movieFinder:profileBio",
-  THEME_KEY: "movieFinder:theme", // pode ser "dark" ou "light"
+  THEME_KEY: "movieFinder:theme", 
 
   DEFAULT_NAME: "Cinéfilo(a)",
   DEFAULT_BIO: "Apaixonado(a) por cinema e boas histórias.",
